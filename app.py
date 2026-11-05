@@ -28,7 +28,7 @@ config = {
 firebase = pyrebase.initialize_app(config)
 auth = firebase.auth()
 db = firebase.database()
-app.secret_key = 'secret'
+app.secret_key = os.environ.get("FLASK_SECRET_KEY", "dev-secret-change-me")
 name = ''
 
 @app.route('/', methods=['GET'])
@@ -247,7 +247,9 @@ def start_emotion_recognition():
                 prediction_label = labels[pred.argmax()]
 
                 # Update the count of detected emotion
-                emotion_counts[prediction_label] += 1
+                # ('disgust' is not tracked, so skip it instead of crashing)
+                if prediction_label in emotion_counts:
+                    emotion_counts[prediction_label] += 1
 
                 # Display the predicted emotion label near the detected face
                 cv2.putText(im, f'Emotion: {prediction_label}', (p - 10, q - 10),
@@ -343,7 +345,7 @@ def post_game():
 @app.route('/start_gameplay', methods=['POST'])
 def start_gameplay():
     try:
-        subprocess.Popen(['game\StackOBot.exe']) #game path
+        subprocess.Popen([os.path.join('game', 'StackOBot.exe')]) #game path
         return 'Game started successfully', 200
     except Exception as e:
         return f'Error starting game: {str(e)}', 500
